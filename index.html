@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한식당 주문 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 기본 스타일 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+        }
+        
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --dark-color: #2d3436;
+            --light-color: #f9f9f9;
+            --gray-color: #dfe6e9;
+            --accent-color: #feca57;
+            --danger-color: #ee5253;
+            --shadow: 0 4px 12px rgba(0,0,0,0.1);
+            --border-radius: 10px;
+        }
+        
+        body {
+            background-color: #f2f5f7;
+            color: var(--dark-color);
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        h1, h2, h3 {
+            color: var(--dark-color);
+        }
+        
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--secondary-color);
+            font-weight: 500;
+        }
+        
+        h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        /* 카테고리 탭 스타일 */
+        .category-tabs {
+            display: flex;
+            overflow-x: auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            padding: 2px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .category-tab {
+            padding: 12px 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .category-tab:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .category-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* 메인 레이아웃 */
+        .container {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 160px);
+        }
+        
+        /* 메뉴판 (좌측) */
+        .menu-container {
+            flex: 3;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 100%;
+        }
+        
+        .category {
+            margin-bottom: 30px;
+            display: none; /* 기본적으로 카테고리 숨김 */
+        }
+        
+        .category.active {
+            display: block; /* 활성화된 카테고리만 표시 */
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .menu-item {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 12px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            position: relative;
+            border: 1px solid var(--gray-color);
+            overflow: hidden;
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .menu-image-container {
+            position: relative;
+            height: 150px;
+            overflow: hidden;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .menu-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        
+        .menu-item:hover .menu-image {
+            transform: scale(1.05);
+        }
+        
+        .menu-details {
+            padding: 5px;
+        }
+        
+        .menu-name {
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        
+        .menu-price {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+        
+        .menu-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+        
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            background-color: #f5f5f5;
+            border-radius: 20px;
+            padding: 2px;
+        }
+        
+        .quantity-btn {
+            width: 28px;
+            height: 28px;
+            background-color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        
+        .quantity-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .quantity-input {
+            width: 30px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        
+        .add-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+        }
+        
+        .add-btn:hover {
+            background-color: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 107, 107, 0.4);
+        }
+        
+        /* 주문 정보 (우측) */
+        .order-container {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .current-order, .confirmed-order {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .confirmed-order {
+            flex: 2;
+        }
+        
+        .order-list {
+            list-style: none;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-color);
+        }
+        
+        .order-item-info {
+            flex: 1;
+        }
+        
+        .order-item-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .order-item-price {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .order-item-controls {
+            display: flex;
+            align-items: center;
+        }
+        
+        .order-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .order-btn, .pay-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        
+        .order-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            margin-right: 10px;
+        }
+        
+        .order-btn:hover {
+            background-color: #3cbbb2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+        }
+        
+        .pay-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .pay-btn:hover {
+            background-color: #dc3545;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(238, 82, 83, 0.3);
+        }
+        
+        .delete-btn {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        
+        .delete-btn:hover {
+            background-color: #ff5252;
+            transform: scale(1.1);
+        }
+        
+        .total-price {
+            font-weight: bold;
+            text-align: right;
+            margin-top: 15px;
+            font-size: 1.2em;
+            color: var(--primary-color);
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            width: 400px;
+            max-width: 80%;
+            text-align: center;
+            position: relative;
+            animation: modalFadeIn 0.3s;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes modalFadeIn {
+            from {transform: translateY(-50px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+        
+        .modal h3 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-size: 1.5em;
+        }
+        
+        .modal p {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+        
+        .modal-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn:hover {
+            background-color: #3cbbb2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+        }
+        
+        /* 추가 스타일 - 빈 주문 메시지 */
+        .empty-order {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
+        
+        /* 배지 */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.7em;
+            margin-left: 5px;
+            font-weight: bold;
+        }
+        
+        /* 스크롤바 스타일 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>한식당 메뉴 주문</h1>
+    </header>
+    
+    <!-- 카테고리 탭 -->
+    <div class="category-tabs" id="categoryTabs">
+        <!-- 카테고리 탭은 JavaScript에서 동적으로 생성됨 -->
+    </div>
+    
+    <div class="container">
+        <!-- 메뉴판 (좌측) -->
+        <div class="menu-container" id="menuContainer">
+            <!-- 카테고리별 메뉴는 JavaScript에서 동적으로 생성됨 -->
+        </div>
+        
+        <!-- 주문 정보 (우측) -->
+        <div class="order-container">
+            <!-- 현재 주문 (아직 확정되지 않은) -->
+            <div class="current-order">
+                <h2>현재 주문</h2>
+                <div id="currentOrderContent">
+                    <ul class="order-list" id="currentOrderList">
+                        <!-- 주문 항목이 여기에 추가됨 -->
+                    </ul>
+                    <div class="total-price" id="currentTotal">총액: 0원</div>
+                </div>
+                <div class="order-actions">
+                    <button class="order-btn" id="orderBtn">주문하기</button>
+                </div>
+            </div>
+            
+            <!-- 확정된 주문 내역 -->
+            <div class="confirmed-order">
+                <h2>주문 내역</h2>
+                <div id="confirmedOrderContent">
+                    <ul class="order-list" id="confirmedOrderList">
+                        <!-- 확정된 주문 항목이 여기에 추가됨 -->
+                    </ul>
+                    <div class="total-price" id="confirmedTotal">총액: 0원</div>
+                </div>
+                <div class="order-actions">
+                    <button class="pay-btn" id="payBtn">계산하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 모달 창 -->
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <h3>주문이 완료되었습니다!</h3>
+            <p>주방에 전송되었습니다.</p>
+            <button class="modal-btn" id="closeOrderModal">확인</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="payModal">
+        <div class="modal-content">
+            <h3>계산이 완료되었습니다!</h3>
+            <p>이용해 주셔서 감사합니다.</p>
+            <button class="modal-btn" id="closePayModal">확인</button>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK 추가 -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // Firebase 초기화
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_1bRKfGDNaQAlzs06EJYyS0ZZZXqCfzA",
+            authDomain: "restaurant-a2dcd.firebaseapp.com",
+            databaseURL: "https://restaurant-a2dcd-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "restaurant-a2dcd",
+            storageBucket: "restaurant-a2dcd.appspot.com",
+            messagingSenderId: "1013531771340",
+            appId: "1:1013531771340:web:7a82f2d08534fc2edd3ec8"
+        };
+        
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // 메뉴 데이터 - 여기서 메뉴, 가격, 이미지 URL을 쉽게 수정할 수 있습니다.
+        const menuData = {
+            // 밥류
+            "밥류": [
+                {
+                    id: "rice1",
+                    name: "비빔밥",
+                    price: 9000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2019/04/14/f8b3057c80a904120a6c1b1fa57b41d81.jpg"
+                },
+                {
+                    id: "rice2",
+                    name: "돌솥비빔밥",
+                    price: 10000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2016/06/29/e7401296033ab8e4297cd53d71e1cba91.jpg"
+                },
+                {
+                    id: "rice3",
+                    name: "김치볶음밥",
+                    price: 8500,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2021/05/04/d74a9932cd9c68f9d2be3aae4e0e732f1.jpg"
+                },
+                {
+                    id: "rice4",
+                    name: "불고기덮밥",
+                    price: 9500,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2016/03/22/67b2054c5a062f8714c253307c1e92c01.jpg"
+                },
+                {
+                    id: "rice5",
+                    name: "제육덮밥",
+                    price: 9000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2020/08/27/f8e7d346b1a1a87a6d8b784941d2e7411.jpg"
+                },
+                {
+                    id: "rice6",
+                    name: "새우볶음밥",
+                    price: 9000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2018/12/29/eff1deab882dea0b7d1038092606450f1.jpg"
+                }
+            ],
+            
+            // 찌개/탕류
+            "찌개/탕류": [
+                {
+                    id: "stew1",
+                    name: "김치찌개",
+                    price: 8000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2016/05/26/a0c388556033b19295835344bc7d30291.jpg"
+                },
+                {
+                    id: "stew2",
+                    name: "된장찌개",
+                    price: 8000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2018/06/28/71d04a65c0f728219497ecb2b0a0da951.jpg"
+                },
+                {
+                    id: "stew3",
+                    name: "순두부찌개",
+                    price: 8500,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2015/04/22/da4e0452ac0bd7ca079d6af6dbdbc92d1.jpg"
+                },
+                {
+                    id: "stew4",
+                    name: "부대찌개",
+                    price: 9500,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2016/01/04/5a112e40e36025905184a4f6a8b077741.jpg"
+                },
+                {
+                    id: "stew5",
+                    name: "갈비탕",
+                    price: 11000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2015/04/27/ad5c17f598ac3f5b275a8a981660fb061.jpg"
+                },
+                {
+                    id: "stew6",
+                    name: "설렁탕",
+                    price: 10000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2015/04/26/59276e2c8e8653b72db240a254a77b1f1.jpg"
+                },
+                {
+                    id: "stew7",
+                    name: "육개장",
+                    price: 9500,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2015/04/24/0e3ddbcba51a6cb493727dbf432c866c1.jpg"
+                }
+            ],
+            
+            // 면류
+            "면류": [
+                {
+                    id: "noodle1",
+                    name: "잔치국수",
+                    price: 7500,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2020/06/23/38b36e85bfa7f967507e409108d429a01.jpg"
+                },
+                {
+                    id: "noodle2",
+                    name: "비빔국수",
+                    price: 8000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2018/07/09/1b2ab72c04e281f8804ebe1d5872656e1.jpg"
+                },
+                {
+                    id: "noodle3",
+                    name: "냉면",
+                    price: 9000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2015/05/08/69ca6a30e655ce9d9cc80559c845a9421.jpg"
+                },
+                {
+                    id: "noodle4",
+                    name: "칼국수",
+                    price: 8500,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2018/11/19/7730ec09ef5ef03027563d0a5da22d621.jpg"
+                },
+                {
+                    id: "noodle5",
+                    name: "비빔냉면",
+                    price: 9000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2018/01/23/2414e9cb95812b977b1e3ca352bc6ca41.jpg"
+                },
+                {
+                    id: "noodle6",
+                    name: "열무국수",
+                    price: 8500,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2018/07/10/21a4052ee18502104446af01aaa5aed31.jpg"
+                }
+            ],
+            
+            // 구이/전류
+            "구이/전류": [
+                {
+                    id: "grill1",
+                    name: "삼겹살",
+                    price: 15000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2016/05/13/4abb072fca6681fc0c3b9eff5dce57dc1.jpg"
+                },
+                {
+                    id: "grill2",
+                    name: "목살",
+                    price: 15000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2018/06/29/292a86ccd4eb2d7c8bc0e71d24b19ab71.jpg"
+                },
+                {
+                    id: "grill3",
+                    name: "갈비",
+                    price: 18000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2018/06/19/b7bf31420fc28006b0ca824f1101732d1.jpg"
+                },
+                {
+                    id: "grill4",
+                    name: "파전",
+                    price: 9000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2015/04/06/a81cc627d5e9de0c2db0ba01f62c10331.jpg"
+                },
+                {
+                    id: "grill5",
+                    name: "김치전",
+                    price: 9000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2021/11/09/cb3f3bd9e9234f040c49006ac0be53371.jpg"
+                },
+                {
+                    id: "grill6",
+                    name: "해물파전",
+                    price: 12000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2015/06/01/0563be4b9429630b40777a0dc3a577981.jpg"
+                },
+                {
+                    id: "grill7",
+                    name: "감자전",
+                    price: 8000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2018/04/30/85dd29f817dd32f7f61e6ec36293d9f61.jpg"
+                }
+            ],
+            
+            // 사이드 메뉴
+            "사이드 메뉴": [
+                {
+                    id: "side1",
+                    name: "김치",
+                    price: 2000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2017/07/09/f8e87fe221f648947b257b5c6b9f6ba11.jpg"
+                },
+                {
+                    id: "side2",
+                    name: "오이무침",
+                    price: 3000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2020/06/28/bbf5a975c8d27436acb16da4c099247a1.jpg"
+                },
+                {
+                    id: "side3",
+                    name: "콩나물무침",
+                    price: 3000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2016/05/30/2f8ae28732a0ddcf7af77c4451d0b6a51.jpg"
+                },
+                {
+                    id: "side4",
+                    name: "감자튀김",
+                    price: 4000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2019/04/01/67b39b67e027f92d1829a77354e4b8681.jpg"
+                },
+                {
+                    id: "side5",
+                    name: "계란찜",
+                    price: 4000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2016/01/22/c7845726efc15c7f359f8d056b0166a51.jpg"
+                },
+                {
+                    id: "side6",
+                    name: "냉모밀",
+                    price: 5000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2022/06/25/0a0799f955e0cac897e4dcfcceff4e781.jpg"
+                }
+            ],
+            
+           // 주류
+            "주류": [
+                {
+                    id: "alcohol1",
+                    name: "소주",
+                    price: 4000,
+                    image: "https://t1.daumcdn.net/cfile/tistory/99CA05455B739D0125"
+                },
+                {
+                    id: "alcohol2",
+                    name: "맥주",
+                    price: 4500,
+                    image: "https://mblogthumb-phinf.pstatic.net/MjAxOTA0MTVfMTg0/MDAxNTU1MzA0MzI2MTk4.cQOIjy5hHAGkprZQUUQF1FiE5L1OaJ85sEcLSZL6vPEg.jRULaI-DfuFo7cIw7RYK8Cd8EoOA2qer3RPbL11KN5wg.JPEG.jejuolletrail/pic_jeju_beer_01_(2).jpg"
+                },
+                {
+                    id: "alcohol3",
+                    name: "막걸리",
+                    price: 5000,
+                    image: "https://t1.daumcdn.net/cfile/tistory/993FAE405C5613F90F"
+                },
+                {
+                    id: "alcohol4",
+                    name: "청하",
+                    price: 6000,
+                    image: "https://img-cf.kurly.com/shop/data/goods/1631601138121l0.jpg"
+                },
+                {
+                    id: "alcohol5",
+                    name: "매화수",
+                    price: 6000,
+                    image: "https://www.hitejinro.com/assets/uploads/data/product/g_L00000000103/g_L00000000103_1.jpg"
+                },
+                {
+                    id: "alcohol6",
+                    name: "동동주",
+                    price: 8000,
+                    image: "https://www.gyeongju.go.kr/upload/content/thumb/20190718/32B42C73363A4C7F867BED7C5DDD9C7B.jpg"
+                }
+            ],
+            
+            // 음료
+            "음료": [
+                {
+                    id: "drink1",
+                    name: "콜라",
+                    price: 2000,
+                    image: "https://images.pexels.com/photos/2983100/pexels-photo-2983100.jpeg"
+                },
+                {
+                    id: "drink2",
+                    name: "사이다",
+                    price: 2000,
+                    image: "https://health.chosun.com/site/data/img_dir/2020/06/26/2020062602992_0.jpg"
+                },
+                {
+                    id: "drink3",
+                    name: "보리차",
+                    price: 1500,
+                    image: "https://mblogthumb-phinf.pstatic.net/MjAxODA3MTJfMjQg/MDAxNTMxMzkxMDI1NzM5.YIOO-UArdfU3U35UmQy1-V3uo_VIu58jCIF14Ux0e88g.IeN-B6sNwvG0KcJbq-MiCRBA2oj9IKZ5hnUQg-y0I_Ag.JPEG.hyrumfirst/IMG_0380.jpg"
+                },
+                {
+                    id: "drink4",
+                    name: "식혜",
+                    price: 3000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2015/07/23/9ceeaade911a7559bc19c5328afdf3bd1.jpg"
+                },
+                {
+                    id: "drink5",
+                    name: "수정과",
+                    price: 3000,
+                    image: "https://recipe1.ezmember.co.kr/cache/recipe/2015/12/08/b8f8bd65e947cdbecb59b8e5e7bf10a21.jpg"
+                },
+                {
+                    id: "drink6",
+                    name: "생수",
+                    price: 1000,
+                    image: "https://img.hankyung.com/photo/202109/AKR20210908147000009_01_i_P4.jpg"
+                }
+            ]
+        };
+        
+        // DOM 요소
+        const categoryTabs = document.getElementById('categoryTabs');
+        const menuContainer = document.getElementById('menuContainer');
+        const currentOrderList = document.getElementById('currentOrderList');
+        const confirmedOrderList = document.getElementById('confirmedOrderList');
+        const currentTotal = document.getElementById('currentTotal');
+        const confirmedTotal = document.getElementById('confirmedTotal');
+        const orderBtn = document.getElementById('orderBtn');
+        const payBtn = document.getElementById('payBtn');
+        const orderModal = document.getElementById('orderModal');
+        const payModal = document.getElementById('payModal');
+        const closeOrderModal = document.getElementById('closeOrderModal');
+        const closePayModal = document.getElementById('closePayModal');
+        const currentOrderContent = document.getElementById('currentOrderContent');
+        const confirmedOrderContent = document.getElementById('confirmedOrderContent');
+        
+        // 주문 데이터
+        let currentOrder = [];
+        let confirmedOrder = [];
+        
+        // 카테고리 탭 렌더링
+        function renderCategoryTabs() {
+            categoryTabs.innerHTML = '';
+            
+            Object.keys(menuData).forEach((category, index) => {
+                const tab = document.createElement('div');
+                tab.className = 'category-tab';
+                if (index === 0) tab.classList.add('active');
+                tab.textContent = category;
+                tab.setAttribute('data-category', category);
+                
+                tab.addEventListener('click', () => {
+                    // 모든 탭에서 active 클래스 제거
+                    document.querySelectorAll('.category-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // 클릭한 탭에 active 클래스 추가
+                    tab.classList.add('active');
+                    
+                    // 모든 카테고리 숨기기
+                    document.querySelectorAll('.category').forEach(cat => {
+                        cat.classList.remove('active');
+                    });
+                    
+                    // 선택한 카테고리만 표시
+                    document.querySelector(`.category[data-category="${category}"]`).classList.add('active');
+                });
+                
+                categoryTabs.appendChild(tab);
+            });
+        }
+        
+        // 메뉴 렌더링
+        function renderMenus() {
+            menuContainer.innerHTML = '';
+            
+            Object.keys(menuData).forEach((category, index) => {
+                const categorySection = document.createElement('div');
+                categorySection.className = 'category';
+                categorySection.setAttribute('data-category', category);
+                
+                // 첫 번째 카테고리만 활성화
+                if (index === 0) {
+                    categorySection.classList.add('active');
+                }
+                
+                const categoryTitle = document.createElement('h2');
+                categoryTitle.textContent = category;
+                categorySection.appendChild(categoryTitle);
+                
+                const menuGrid = document.createElement('div');
+                menuGrid.className = 'menu-grid';
+                
+                menuData[category].forEach(item => {
+                    const menuItem = document.createElement('div');
+                    menuItem.className = 'menu-item';
+                    menuItem.innerHTML = `
+                        <div class="menu-image-container">
+                            <img src="${item.image}" alt="${item.name}" class="menu-image">
+                        </div>
+                        <div class="menu-details">
+                            <div class="menu-name">${item.name}</div>
+                            <div class="menu-price">${item.price.toLocaleString()}원</div>
+                            <div class="menu-controls">
+                                <div class="quantity-control">
+                                    <button class="quantity-btn minus" data-id="${item.id}">-</button>
+                                    <input type="number" class="quantity-input" id="quantity-${item.id}" value="1" min="1" max="10">
+                                    <button class="quantity-btn plus" data-id="${item.id}">+</button>
+                                </div>
+                                <button class="add-btn" data-id="${item.id}">추가</button>
+                            </div>
+                        </div>
+                    `;
+                    menuGrid.appendChild(menuItem);
+                });
+                
+                categorySection.appendChild(menuGrid);
+                menuContainer.appendChild(categorySection);
+            });
+            
+            // 이벤트 리스너 추가
+            addMenuEventListeners();
+        }
+        
+        // 이벤트 리스너 추가
+        function addMenuEventListeners() {
+            // 수량 감소 버튼
+            document.querySelectorAll('.quantity-btn.minus').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 이벤트 버블링 방지
+                    const id = btn.getAttribute('data-id');
+                    const input = document.getElementById(`quantity-${id}`);
+                    const currentValue = parseInt(input.value);
+                    if (currentValue > 1) {
+                        input.value = currentValue - 1;
+                    }
+                });
+            });
+            
+            // 수량 증가 버튼
+            document.querySelectorAll('.quantity-btn.plus').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 이벤트 버블링 방지
+                    const id = btn.getAttribute('data-id');
+                    const input = document.getElementById(`quantity-${id}`);
+                    const currentValue = parseInt(input.value);
+                    if (currentValue < 10) {
+                        input.value = currentValue + 1;
+                    }
+                });
+            });
+            
+            // 메뉴 추가 버튼
+            document.querySelectorAll('.add-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 이벤트 버블링 방지
+                    const id = btn.getAttribute('data-id');
+                    const quantity = parseInt(document.getElementById(`quantity-${id}`).value);
+                    
+                    // 메뉴 찾기
+                    let selectedItem = null;
+                    for (const category in menuData) {
+                        const found = menuData[category].find(item => item.id === id);
+                        if (found) {
+                            selectedItem = found;
+                            break;
+                        }
+                    }
+                    
+                    if (selectedItem) {
+                        addToCurrentOrder(selectedItem, quantity);
+                    }
+                });
+            });
+        }
+        
+        // 현재 주문에 메뉴 추가
+        function addToCurrentOrder(item, quantity) {
+            // 이미 같은 메뉴가 있는지 확인
+            const existingIndex = currentOrder.findIndex(orderItem => orderItem.id === item.id);
+            
+            if (existingIndex !== -1) {
+                // 이미 있는 경우 수량 증가
+                currentOrder[existingIndex].quantity += quantity;
+            } else {
+                // 새로운 메뉴 추가
+                currentOrder.push({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    quantity: quantity
+                });
+            }
+            
+            renderCurrentOrder();
+        }
+        
+        // 현재 주문 렌더링
+        function renderCurrentOrder() {
+            // 빈 주문 처리
+            if (currentOrder.length === 0) {
+                currentOrderContent.innerHTML = '<div class="empty-order">아직 추가된 메뉴가 없습니다.</div>';
+                return;
+            }
+            
+            currentOrderList.innerHTML = '';
+            let total = 0;
+            
+            currentOrder.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                const li = document.createElement('li');
+                li.className = 'order-item';
+                li.innerHTML = `
+                    <div class="order-item-info">
+                        <div class="order-item-name">${item.name} × ${item.quantity}</div>
+                        <div class="order-item-price">${itemTotal.toLocaleString()}원</div>
+                    </div>
+                    <div class="order-item-controls">
+                        <button class="quantity-btn minus" data-index="${index}">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="quantity-btn plus" data-index="${index}">+</button>
+                        <button class="delete-btn" data-index="${index}">×</button>
+                    </div>
+                `;
+                currentOrderList.appendChild(li);
+            });
+            
+            // 현재 주문 내용 업데이트
+            currentOrderContent.innerHTML = '';
+            currentOrderContent.appendChild(currentOrderList);
+            
+            const totalElement = document.createElement('div');
+            totalElement.className = 'total-price';
+            totalElement.id = 'currentTotal';
+            totalElement.textContent = `총액: ${total.toLocaleString()}원`;
+            currentOrderContent.appendChild(totalElement);
+            
+            // 이벤트 리스너 추가
+            addCurrentOrderEventListeners();
+        }
+        
+        // 현재 주문 이벤트 리스너 추가
+        function addCurrentOrderEventListeners() {
+            // 수량 감소
+            document.querySelectorAll('#currentOrderList .quantity-btn.minus').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.getAttribute('data-index'));
+                    if (currentOrder[index].quantity > 1) {
+                        currentOrder[index].quantity -= 1;
+                    }
+                    renderCurrentOrder();
+                });
+            });
+            
+            // 수량 증가
+            document.querySelectorAll('#currentOrderList .quantity-btn.plus').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.getAttribute('data-index'));
+                    if (currentOrder[index].quantity < 10) {
+                        currentOrder[index].quantity += 1;
+                    }
+                    renderCurrentOrder();
+                });
+            });
+            
+            // 항목 삭제
+            document.querySelectorAll('#currentOrderList .delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = parseInt(btn.getAttribute('data-index'));
+                    currentOrder.splice(index, 1);
+                    renderCurrentOrder();
+                });
+            });
+        }
+        
+        // 확정된 주문 렌더링
+        function renderConfirmedOrder() {
+            // 빈 주문 처리
+            if (confirmedOrder.length === 0) {
+                confirmedOrderContent.innerHTML = '<div class="empty-order">아직 확정된 주문이 없습니다.</div>';
+                return;
+            }
+            
+            confirmedOrderList.innerHTML = '';
+            let total = 0;
+            
+            // 메뉴별로 합산
+            const mergedItems = {};
+            confirmedOrder.forEach(item => {
+                if (mergedItems[item.id]) {
+                    mergedItems[item.id].quantity += item.quantity;
+                } else {
+                    mergedItems[item.id] = { ...item };
+                }
+            });
+            
+            Object.values(mergedItems).forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                const li = document.createElement('li');
+                li.className = 'order-item';
+                li.innerHTML = `
+                    <div class="order-item-info">
+                        <div class="order-item-name">${item.name} × ${item.quantity}</div>
+                        <div class="order-item-price">${itemTotal.toLocaleString()}원</div>
+                    </div>
+                `;
+                confirmedOrderList.appendChild(li);
+            });
+            
+            // 확정 주문 내용 업데이트
+            confirmedOrderContent.innerHTML = '';
+            confirmedOrderContent.appendChild(confirmedOrderList);
+            
+            const totalElement = document.createElement('div');
+            totalElement.className = 'total-price';
+            totalElement.id = 'confirmedTotal';
+            totalElement.textContent = `총액: ${total.toLocaleString()}원`;
+            confirmedOrderContent.appendChild(totalElement);
+        }
+        
+        // 주문 확정 처리
+        function confirmOrder() {
+            if (currentOrder.length === 0) return;
+            
+            // 주문을 확정된 주문으로 이동
+            confirmedOrder = [...confirmedOrder, ...currentOrder];
+            currentOrder = [];
+            
+            // 주문 목록 다시 렌더링
+            renderCurrentOrder();
+            renderConfirmedOrder();
+            
+            // 모달 표시
+            orderModal.style.display = 'flex';
+        }
+        
+        // 계산 처리
+        async function processPayment() {
+            if (confirmedOrder.length === 0) return;
+            
+            // 메뉴별로 합산
+            const mergedItems = {};
+            confirmedOrder.forEach(item => {
+                if (mergedItems[item.id]) {
+                    mergedItems[item.id].quantity += item.quantity;
+                } else {
+                    mergedItems[item.id] = { ...item };
+                }
+            });
+            
+            // 총액 계산
+            const totalAmount = Object.values(mergedItems).reduce((sum, item) => 
+                sum + (item.price * item.quantity), 0);
+            
+            // 주문 데이터 생성
+            const orderData = {
+                customer: "신규고객",
+                items: Object.values(mergedItems).map(item => ({
+                    name: item.name,
+                    price: item.price,
+                    quantity: item.quantity
+                })),
+                total: totalAmount,
+                timestamp: Date.now()
+            };
+            
+            try {
+                // Firebase에 주문 데이터 저장
+                await database.ref('orders').push(orderData);
+                
+                // 주문 초기화
+                confirmedOrder = [];
+                renderConfirmedOrder();
+                
+                // 모달 표시
+                payModal.style.display = 'flex';
+            } catch (error) {
+                console.error('결제 처리 중 오류 발생:', error);
+                alert('결제 처리 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // 이벤트 리스너
+        orderBtn.addEventListener('click', confirmOrder);
+        payBtn.addEventListener('click', processPayment);
+        
+        closeOrderModal.addEventListener('click', () => {
+            orderModal.style.display = 'none';
+        });
+        
+        closePayModal.addEventListener('click', () => {
+            payModal.style.display = 'none';
+        });
+        
+        // 초기화
+        renderCategoryTabs();
+        renderMenus();
+        renderCurrentOrder();
+        renderConfirmedOrder();
+    </script>
+</body>
+</html>
